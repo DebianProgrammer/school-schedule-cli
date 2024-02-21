@@ -3,9 +3,29 @@ use crate::print_data::print_data::print_data;
 mod print_data;
 mod config;
 
+const HELP_STRING: &str = "\
+school-schedule-cli is a simple CLI tool to show the current day's schedule. It uses a config file to get the schedule for the current day.
+
+USAGE:
+    school-schedule-cli [OPTIONS]
+
+OPTIONS:
+    --mode <mode>       The mode to use for the schedule. You can use \"raw\" for easier parsing. If not provided, the \"normal\" mode will be used.
+    --24-hour           Use 24-hour format for the time. If not provided, 12-hour format will be used.
+    --help              Prints help information and exits
+
+EXAMPLES:
+    school-schedule-cli
+    school-schedule-cli --mode raw
+    school-schedule-cli --24-hour
+    school-schedule-cli --mode raw --24-hour
+
+";
+
 #[derive(Debug)]
 struct Cli {
-    mode: Option<String>
+    mode: Option<String>,
+    use_24_hour_format: bool
 }
 
 fn main() {
@@ -21,13 +41,20 @@ fn main() {
     let config = parse_config();
     let current_day_config = config.get_times(&current_day);
 
-    print_data(current_day_config, current_time, cli_args.mode.as_deref());
+    print_data(current_day_config, current_time, cli_args.mode.as_deref(), cli_args.use_24_hour_format);
 }
 
 fn parse_args() -> Result<Cli, pico_args::Error> {
     let mut pargs = pico_args::Arguments::from_env();
+
+    if pargs.contains(["-h", "--help"]) {
+        print!("{}", HELP_STRING);
+        std::process::exit(0);
+    }
+
     let args = Cli {
-        mode: pargs.opt_value_from_str("--mode")?
+        mode: pargs.opt_value_from_str("--mode")?,
+        use_24_hour_format: pargs.contains("--24-hour")
     };
 
     Ok(args)
