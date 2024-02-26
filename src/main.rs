@@ -10,9 +10,14 @@ USAGE:
     school-schedule-cli [OPTIONS]
 
 OPTIONS:
-    --mode <mode>       The mode to use for the schedule. You can use \"raw\" for easier parsing. If not provided, the \"normal\" mode will be used.
+    --mode <mode>       The mode to use for the schedule.
     --24-hour           Use 24-hour format for the time. If not provided, 12-hour format will be used.
     --help              Prints help information and exits
+
+MODES:
+    normal              Print the schedule in a normal human-readable format. This is the default mode.
+    raw                 Print the schedule in a raw format. This is useful for scripting.
+    relative            Print the schedule in a relative format. This is useful for seeing how much time is left until the next class.
 
 EXAMPLES:
     school-schedule-cli
