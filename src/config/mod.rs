@@ -24,7 +24,10 @@ impl Schedule {
             "friday" => &self.friday,
             "saturday" => &self.saturday,
             "sunday" => &self.sunday,
-            _ => panic!("Invalid day")
+            _ => {
+                eprintln!("Invalid day. Valid options are: sunday, monday, tuesday, wednesday, thursday, friday, saturday");
+                std::process::exit(1);
+            }
         }
     }
 }

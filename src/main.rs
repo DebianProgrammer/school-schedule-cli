@@ -30,6 +30,7 @@ EXAMPLES:
 #[derive(Debug)]
 struct Cli {
     mode: Option<String>,
+    day: Option<String>,
     use_24_hour_format: bool
 }
 
@@ -41,12 +42,16 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let current_day = chrono::offset::Local::now().format("%A").to_string().to_lowercase();
+    let current_day = match &cli_args.day {
+        Some(day) => day.to_lowercase(),
+        None => chrono::offset::Local::now().format("%A").to_string().to_lowercase()
+    };
+
     let current_time = chrono::offset::Local::now().naive_local().time();
     let config = parse_config();
     let current_day_config = config.get_times(&current_day);
 
-    print_data(current_day_config, current_time, cli_args.mode.as_deref(), cli_args.use_24_hour_format);
+    print_data(current_day_config, current_time, cli_args.mode.as_deref(), cli_args.use_24_hour_format, cli_args.day.is_none());
 }
 
 fn parse_args() -> Result<Cli, pico_args::Error> {
@@ -59,6 +64,7 @@ fn parse_args() -> Result<Cli, pico_args::Error> {
 
     let args = Cli {
         mode: pargs.opt_value_from_str("--mode")?,
+        day: pargs.opt_value_from_str("--day")?,
         use_24_hour_format: pargs.contains("--24-hour")
     };
 
