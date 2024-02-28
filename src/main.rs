@@ -1,3 +1,4 @@
+use pico_args::Arguments;
 use crate::config::*;
 use crate::print_data::print_data::print_data;
 mod print_data;
@@ -35,7 +36,7 @@ struct Cli {
 }
 
 fn main() {
-    let cli_args = match parse_args() {
+    let cli_args = match parse_args(pico_args::Arguments::from_env()) {
         Ok(v) => v,
         Err(e) => {
             eprintln!("Error: {}", e);
@@ -54,8 +55,8 @@ fn main() {
     print_data(current_day_config, current_time, cli_args.mode.as_deref(), cli_args.use_24_hour_format, cli_args.day.is_none());
 }
 
-fn parse_args() -> Result<Cli, pico_args::Error> {
-    let mut pargs = pico_args::Arguments::from_env();
+fn parse_args(mut pargs: Arguments) -> Result<Cli, pico_args::Error> {
+    //let mut pargs = pico_args::Arguments::from_env();
 
     if pargs.contains(["-h", "--help"]) {
         print!("{}", HELP_STRING);
@@ -69,4 +70,47 @@ fn parse_args() -> Result<Cli, pico_args::Error> {
     };
 
     Ok(args)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::ffi::OsString;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_args() {
+        let args: Vec<OsString> = vec![OsString::from("school-schedule-cli"), OsString::from("--mode"), OsString::from("raw"), OsString::from("--day"), OsString::from("monday"), OsString::from("--24-hour")];
+        let cli_args = parse_args(pico_args::Arguments::from_vec(args)).expect("Could not parse args");
+        assert_eq!(cli_args.mode, Some("raw".to_string()));
+        assert_eq!(cli_args.day, Some("monday".to_string()));
+        assert_eq!(cli_args.use_24_hour_format, true);
+    }
+
+    #[test]
+    fn test_parse_args_no_args() {
+        let args: Vec<OsString> = vec![OsString::from("school-schedule-cli")];
+        let cli_args = parse_args(pico_args::Arguments::from_vec(args)).expect("Could not parse args");
+        assert_eq!(cli_args.mode, None);
+        assert_eq!(cli_args.day, None);
+        assert_eq!(cli_args.use_24_hour_format, false);
+    }
+
+    #[test]
+    fn test_config() {
+        let config = parse_config();
+        let days = vec!["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        for day in days {
+            config.get_times(day);
+        }
+    }
+
+    #[test]
+    fn test_print_data() {
+        let current_time = chrono::NaiveTime::from_hms_opt(12, 0, 0).unwrap();
+        let day_config = vec![(chrono::NaiveTime::from_hms_opt(9, 0, 0).expect("Can't parse time"), chrono::NaiveTime::from_hms_opt(10, 0, 0).expect("Can't parse time")), (chrono::NaiveTime::from_hms_opt(17, 0, 0).expect("Can't parse time"), chrono::NaiveTime::from_hms_opt(18, 0, 0).expect("Can't parse time"))];
+        print_data(&day_config, current_time, Some("normal"), false, true);
+        print_data(&day_config, current_time, Some("raw"), false, true);
+        print_data(&day_config, current_time, Some("relative"), false, true);
+    }
 }
